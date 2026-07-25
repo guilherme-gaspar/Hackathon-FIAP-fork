@@ -52,7 +52,7 @@ public class TriagemService implements RealizarTriagemUseCase, ConsultarTriagemU
     }
 
     @Override
-    public AnaliseClinica analisar(String queixaLivre) {
-        return assistente.analisar(queixaLivre);
+    public AnaliseClinica analisar(AssistenteTriagemPort.ContextoTriagem contexto) {
+        return assistente.analisar(contexto);
     }
 }

@@ -1,0 +1,139 @@
+{
+  "info": {
+    "_postman_id": "c328e2c9-7a35-4619-8d8e-4e2c061fc3fa",
+    "name": "Atendimento SUS API",
+    "description": "Collection completa da API. Execute Login - Profissional primeiro; os scripts armazenam token e IDs nas variáveis da collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "profissionalId", "value": "" },
+    { "key": "pacienteId", "value": "" },
+    { "key": "triagemId", "value": "" },
+    { "key": "agendamentoId", "value": "" }
+  ],
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Registrar profissional",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Dra. Maria\",\n  \"email\": \"maria.profissional@exemplo.com\",\n  \"senha\": \"senha123\",\n  \"role\": \"PROFISSIONAL\"\n}" },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Registrar paciente (usuário)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"João da Silva\",\n  \"email\": \"joao.paciente@exemplo.com\",\n  \"senha\": \"senha123\",\n  \"role\": \"PACIENTE\"\n}" },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login - Profissional",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "const resposta = pm.response.json();",
+            "pm.collectionVariables.set('token', resposta.token);",
+            "pm.collectionVariables.set('profissionalId', resposta.usuarioId);"
+          ] } }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"maria.profissional@exemplo.com\",\n  \"senha\": \"senha123\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pacientes",
+      "item": [
+        {
+          "name": "Cadastrar paciente",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.collectionVariables.set('pacienteId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"João da Silva\",\n  \"cpf\": \"52998224725\",\n  \"dataNascimento\": \"1990-05-10\",\n  \"sexo\": \"MASCULINO\",\n  \"telefone\": \"11999999999\",\n  \"cartaoSus\": \"123456789012345\"\n}" },
+            "url": "{{baseUrl}}/api/pacientes"
+          }
+        },
+        { "name": "Buscar paciente por ID", "request": { "method": "GET", "url": "{{baseUrl}}/api/pacientes/{{pacienteId}}" } },
+        { "name": "Listar pacientes", "request": { "method": "GET", "url": "{{baseUrl}}/api/pacientes" } }
+      ]
+    },
+    {
+      "name": "Triagens",
+      "item": [
+        {
+          "name": "Analisar queixa com IA (contexto completo)",
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"queixaLivre\": \"Dor no peito há duas horas, com falta de ar.\",\n  \"sintomasSelecionados\": [\"DOR_TORACICA\", \"FALTA_DE_AR\"],\n  \"frequenciaCardiaca\": 112,\n  \"frequenciaRespiratoria\": 24,\n  \"pressaoSistolica\": 145,\n  \"pressaoDiastolica\": 90,\n  \"temperatura\": 37.2,\n  \"saturacaoOxigenio\": 93,\n  \"escalaDor\": 8\n}" },
+            "url": "{{baseUrl}}/api/triagens/analise"
+          }
+        },
+        {
+          "name": "Analisar queixa com IA (mínimo compatível)",
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"queixaLivre\": \"Estou com febre e tosse há três dias.\"\n}" },
+            "url": "{{baseUrl}}/api/triagens/analise"
+          }
+        },
+        {
+          "name": "Realizar triagem",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.collectionVariables.set('triagemId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"pacienteId\": \"{{pacienteId}}\",\n  \"frequenciaCardiaca\": 112,\n  \"frequenciaRespiratoria\": 24,\n  \"pressaoSistolica\": 145,\n  \"pressaoDiastolica\": 90,\n  \"temperatura\": 37.2,\n  \"saturacaoOxigenio\": 93,\n  \"escalaDor\": 8,\n  \"sintomas\": [\"DOR_TORACICA\", \"FALTA_DE_AR\"]\n}" },
+            "url": "{{baseUrl}}/api/triagens"
+          }
+        },
+        { "name": "Buscar triagem por ID", "request": { "method": "GET", "url": "{{baseUrl}}/api/triagens/{{triagemId}}" } }
+      ]
+    },
+    {
+      "name": "Agendamentos",
+      "item": [
+        {
+          "name": "Agendar consulta",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.collectionVariables.set('agendamentoId', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"pacienteId\": \"{{pacienteId}}\",\n  \"profissionalId\": \"{{profissionalId}}\",\n  \"tipo\": \"CONSULTA\",\n  \"especialidade\": \"Clínica médica\",\n  \"inicio\": \"2030-12-31T09:00:00\",\n  \"duracaoMinutos\": 30,\n  \"triagemId\": \"{{triagemId}}\",\n  \"observacao\": \"Consulta derivada da triagem\"\n}" },
+            "url": "{{baseUrl}}/api/agendamentos"
+          }
+        },
+        { "name": "Confirmar agendamento", "request": { "method": "POST", "url": "{{baseUrl}}/api/agendamentos/{{agendamentoId}}/confirmar" } },
+        { "name": "Cancelar agendamento", "request": { "method": "POST", "url": "{{baseUrl}}/api/agendamentos/{{agendamentoId}}/cancelar" } },
+        { "name": "Concluir agendamento", "request": { "method": "POST", "url": "{{baseUrl}}/api/agendamentos/{{agendamentoId}}/concluir" } },
+        { "name": "Listar por profissional", "request": { "method": "GET", "url": "{{baseUrl}}/api/agendamentos/profissional/{{profissionalId}}" } },
+        { "name": "Listar por paciente", "request": { "method": "GET", "url": "{{baseUrl}}/api/agendamentos/paciente/{{pacienteId}}" } }
+      ]
+    },
+    {
+      "name": "Infraestrutura",
+      "item": [
+        { "name": "Health", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/actuator/health" } },
+        { "name": "OpenAPI JSON", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/v3/api-docs" } },
+        { "name": "Swagger UI", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/swagger-ui.html" } }
+      ]
+    }
+  ]
+}

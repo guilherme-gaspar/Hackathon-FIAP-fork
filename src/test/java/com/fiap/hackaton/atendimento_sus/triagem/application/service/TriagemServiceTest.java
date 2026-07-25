@@ -3,6 +3,7 @@ package com.fiap.hackaton.atendimento_sus.triagem.application.service;
 import com.fiap.hackaton.atendimento_sus.triagem.application.port.in.RealizarTriagemUseCase.RealizarTriagemCommand;
 import com.fiap.hackaton.atendimento_sus.triagem.application.port.out.AssistenteTriagemPort;
 import com.fiap.hackaton.atendimento_sus.triagem.application.port.out.AssistenteTriagemPort.AnaliseClinica;
+import com.fiap.hackaton.atendimento_sus.triagem.application.port.out.AssistenteTriagemPort.ContextoTriagem;
 import com.fiap.hackaton.atendimento_sus.triagem.application.port.out.TriagemRepositoryPort;
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.NivelRisco;
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.SinaisVitais;
@@ -66,11 +67,14 @@ class TriagemServiceTest {
 
     @Test
     void analisarDelegaAoAssistente() {
-        AnaliseClinica esperado = new AnaliseClinica(EnumSet.of(Sintoma.DOR_TORACICA, Sintoma.FALTA_DE_AR), "dor no peito");
-        when(assistente.analisar("dor no peito e falta de ar")).thenReturn(esperado);
+        ContextoTriagem contexto = new ContextoTriagem("dor no peito e falta de ar", sinaisNormais, Set.of());
+        AnaliseClinica esperado = new AnaliseClinica(EnumSet.of(Sintoma.DOR_TORACICA, Sintoma.FALTA_DE_AR), "dor no peito",
+                Set.of("Quando começou?"), Set.of(), Set.of());
+        when(assistente.analisar(contexto)).thenReturn(esperado);
 
-        AnaliseClinica resultado = service().analisar("dor no peito e falta de ar");
+        AnaliseClinica resultado = service().analisar(contexto);
 
         assertThat(resultado.sintomasSugeridos()).containsExactlyInAnyOrder(Sintoma.DOR_TORACICA, Sintoma.FALTA_DE_AR);
     }
+
 }

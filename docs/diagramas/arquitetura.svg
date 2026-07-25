@@ -1,0 +1,14 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1200" height="720" rx="36" fill="#F8FCFC"/>
+<text x="70" y="75" fill="#123F52" font-family="Arial" font-size="34" font-weight="700">Arquitetura do SUS Flow</text>
+<text x="70" y="110" fill="#5C7780" font-family="Arial" font-size="19">Arquitetura em camadas com portas e adaptadores</text>
+<g font-family="Arial" text-anchor="middle"><rect x="70" y="180" width="210" height="120" rx="24" fill="#D5EEF2"/><text x="175" y="230" fill="#123F52" font-size="23" font-weight="700">Clientes</text><text x="175" y="260" fill="#365C6E" font-size="18">Postman · Swagger</text>
+<rect x="350" y="180" width="230" height="120" rx="24" fill="#DDF3EF"/><text x="465" y="230" fill="#123F52" font-size="23" font-weight="700">Adapters in</text><text x="465" y="260" fill="#365C6E" font-size="18">Controllers REST</text>
+<rect x="650" y="180" width="230" height="120" rx="24" fill="#FFF0E7"/><text x="765" y="230" fill="#123F52" font-size="23" font-weight="700">Aplicação</text><text x="765" y="260" fill="#365C6E" font-size="18">Casos de uso / serviços</text>
+<rect x="350" y="410" width="530" height="130" rx="24" fill="#123F52"/><text x="615" y="465" fill="#FFF" font-size="25" font-weight="700">Domínio</text><text x="615" y="500" fill="#CFE6E4" font-size="18">Triagem · regras de risco · pacientes · agendamento</text>
+<rect x="950" y="145" width="180" height="120" rx="24" fill="#FCE5E1"/><text x="1040" y="195" fill="#123F52" font-size="23" font-weight="700">Ollama</text><text x="1040" y="225" fill="#365C6E" font-size="18">IA local</text>
+<rect x="950" y="370" width="180" height="120" rx="24" fill="#BDE7DE"/><text x="1040" y="420" fill="#123F52" font-size="23" font-weight="700">PostgreSQL</text><text x="1040" y="450" fill="#365C6E" font-size="18">JPA + Flyway</text></g>
+<g stroke="#64B6AC" stroke-width="7" stroke-linecap="round"><path d="M290 240h48"/><path d="M590 240h48"/><path d="M765 310v88"/><path d="M890 240h48"/><path d="M890 460h48"/></g>
+<g fill="#64B6AC"><path d="M328 228l17 12-17 12Z"/><path d="M628 228l17 12-17 12Z"/><path d="M753 388l12 17 12-17Z"/><path d="M928 228l17 12-17 12Z"/><path d="M928 448l17 12-17 12Z"/></g>
+<text x="70" y="650" fill="#E65A4F" font-family="Arial" font-size="19" font-weight="700">Princípio-chave:</text><text x="270" y="650" fill="#365C6E" font-family="Arial" font-size="19">o Ollama assiste; o domínio determina o risco.</text>
+</svg>

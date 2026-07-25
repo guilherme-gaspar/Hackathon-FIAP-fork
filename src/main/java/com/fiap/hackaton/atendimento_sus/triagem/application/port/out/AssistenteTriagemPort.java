@@ -1,6 +1,7 @@
 package com.fiap.hackaton.atendimento_sus.triagem.application.port.out;
 
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.NivelRisco;
+import com.fiap.hackaton.atendimento_sus.triagem.domain.model.SinaisVitais;
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.Sintoma;
 
 import java.util.Set;
@@ -13,8 +14,8 @@ import java.util.Set;
  */
 public interface AssistenteTriagemPort {
 
-    /** Extrai sintomas estruturados a partir de uma queixa em linguagem natural. */
-    AnaliseClinica analisar(String queixaLivre);
+    /** Extrai sintomas e sugere itens para conferência a partir do contexto de triagem. */
+    AnaliseClinica analisar(ContextoTriagem contexto);
 
     /** Gera um texto curto de orientação ao paciente coerente com o risco classificado. */
     String gerarOrientacao(NivelRisco nivel, Set<Sintoma> sintomas);
@@ -25,5 +26,11 @@ public interface AssistenteTriagemPort {
      * @param sintomasSugeridos sintomas mapeados ao enum (nunca {@code null}; pode ser vazio)
      * @param resumo            breve resumo/observação da IA (pode ser {@code null})
      */
-    record AnaliseClinica(Set<Sintoma> sintomasSugeridos, String resumo) {}
+    record AnaliseClinica(Set<Sintoma> sintomasSugeridos, String resumo,
+                          Set<String> perguntasComplementares, Set<String> alertasParaConferencia,
+                          Set<String> camposAusentes) {}
+
+    /** Dados clínicos já coletados que contextualizam a assistência. */
+    record ContextoTriagem(String queixaLivre, SinaisVitais sinaisVitais, Set<Sintoma> sintomasSelecionados) {}
+
 }

@@ -9,6 +9,7 @@ import com.fiap.hackaton.atendimento_sus.triagem.application.port.in.AnalisarQue
 import com.fiap.hackaton.atendimento_sus.triagem.application.port.in.ConsultarTriagemUseCase;
 import com.fiap.hackaton.atendimento_sus.triagem.application.port.in.RealizarTriagemUseCase;
 import com.fiap.hackaton.atendimento_sus.triagem.application.port.in.RealizarTriagemUseCase.RealizarTriagemCommand;
+import com.fiap.hackaton.atendimento_sus.triagem.application.port.out.AssistenteTriagemPort.ContextoTriagem;
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.SinaisVitais;
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.Sintoma;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +50,20 @@ public class TriagemController {
     @PreAuthorize("hasAnyRole('PROFISSIONAL', 'ADMIN')")
     @Operation(summary = "Analisa uma queixa em texto livre (IA) e sugere sintomas estruturados")
     public ResponseEntity<AnaliseClinicaResponse> analisar(@Valid @RequestBody AnalisarQueixaRequest req) {
-        return ResponseEntity.ok(AnaliseClinicaResponse.de(analisarQueixa.analisar(req.queixaLivre())));
+        return ResponseEntity.ok(AnaliseClinicaResponse.de(analisarQueixa.analisar(contextoDe(req))));
+    }
+
+    private ContextoTriagem contextoDe(AnalisarQueixaRequest req) {
+        Set<Sintoma> sintomas = (req.sintomasSelecionados() == null || req.sintomasSelecionados().isEmpty())
+                ? EnumSet.noneOf(Sintoma.class) : EnumSet.copyOf(req.sintomasSelecionados());
+        if (req.frequenciaCardiaca() == null || req.frequenciaRespiratoria() == null || req.pressaoSistolica() == null
+                || req.pressaoDiastolica() == null || req.temperatura() == null || req.saturacaoOxigenio() == null
+                || req.escalaDor() == null) {
+            return new ContextoTriagem(req.queixaLivre(), null, sintomas);
+        }
+        SinaisVitais sinais = new SinaisVitais(req.frequenciaCardiaca(), req.frequenciaRespiratoria(),
+                req.pressaoSistolica(), req.pressaoDiastolica(), req.temperatura(), req.saturacaoOxigenio(), req.escalaDor());
+        return new ContextoTriagem(req.queixaLivre(), sinais, sintomas);
     }
 
     @PostMapping

@@ -3,6 +3,7 @@ package com.fiap.hackaton.atendimento_sus.triagem.adapter.out.ai;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fiap.hackaton.atendimento_sus.triagem.application.port.out.AssistenteTriagemPort;
+import com.fiap.hackaton.atendimento_sus.triagem.application.port.out.AssistenteTriagemPort.ContextoTriagem;
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.NivelRisco;
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.Sintoma;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,17 +58,19 @@ public class OllamaAssistenteAdapter implements AssistenteTriagemPort {
     }
 
     @Override
-    public AnaliseClinica analisar(String queixaLivre) {
-        if (queixaLivre == null || queixaLivre.isBlank()) {
-            return new AnaliseClinica(EnumSet.noneOf(Sintoma.class), null);
+    public AnaliseClinica analisar(ContextoTriagem contexto) {
+        if (contexto == null || contexto.queixaLivre() == null || contexto.queixaLivre().isBlank()) {
+            return analiseVazia();
         }
         try {
             String valoresEnum = Arrays.stream(Sintoma.values()).map(Enum::name).collect(Collectors.joining(", "));
             String system = """
                     Você é um assistente de triagem clínica. A partir da queixa do paciente em
                     português, identifique os sintomas presentes e mapeie APENAS para os valores
-                    exatos deste enum: %s. Responda em JSON com a chave "sintomas" (lista de
-                    valores do enum) e "resumo" (frase curta). Não invente sintomas.
+                    exatos deste enum: %s. Gere obrigatoriamente um resumo factual e curto da queixa.
+                    Além disso, sugira perguntas complementares, alertas para conferência e campos ausentes
+                    para revisão humana. Não faça diagnóstico, prescrição, prognóstico nem classificação de
+                    risco. Gere no máximo 5 itens por lista. Responda somente em JSON. Não invente sintomas.
                     """.formatted(valoresEnum);
 
             Map<String, Object> schema = Map.of(
@@ -75,10 +79,15 @@ public class OllamaAssistenteAdapter implements AssistenteTriagemPort {
                             "sintomas", Map.of("type", "array",
                                     "items", Map.of("type", "string",
                                             "enum", Arrays.stream(Sintoma.values()).map(Enum::name).toList())),
-                            "resumo", Map.of("type", "string")),
-                    "required", List.of("sintomas"));
+                            "resumo", Map.of("type", "string"),
+                            "perguntasComplementares", arraySchema(),
+                            "alertasParaConferencia", arraySchema(),
+                            "camposAusentes", arraySchema()),
+                    "required", List.of("sintomas", "resumo", "perguntasComplementares",
+                            "alertasParaConferencia", "camposAusentes"),
+                    "additionalProperties", false);
 
-            String content = chat(system, queixaLivre, schema);
+            String content = chat(system, contextoParaPrompt(contexto), schema);
             JsonNode raiz = objectMapper.readTree(content);
 
             Set<Sintoma> sintomas = EnumSet.noneOf(Sintoma.class);
@@ -87,11 +96,18 @@ public class OllamaAssistenteAdapter implements AssistenteTriagemPort {
                     parseSintoma(n.asText()).ifPresent(sintomas::add);
                 }
             }
-            String resumo = raiz.hasNonNull("resumo") ? raiz.get("resumo").asText() : null;
-            return new AnaliseClinica(sintomas, resumo);
+            String resumo = textoLimitado(raiz.path("resumo").asText(null));
+            if (resumo == null) {
+                log.warn("Ollama retornou análise sem resumo; utilizando a queixa original como fallback");
+                resumo = textoLimitado(contexto.queixaLivre());
+            }
+            return new AnaliseClinica(sintomas, resumo,
+                    textosLimitados(raiz.path("perguntasComplementares")),
+                    textosLimitados(raiz.path("alertasParaConferencia")),
+                    textosLimitados(raiz.path("camposAusentes")));
         } catch (Exception ex) {
             log.warn("Falha ao analisar queixa via Ollama (degradando para vazio): {}", ex.getMessage());
-            return new AnaliseClinica(EnumSet.noneOf(Sintoma.class), null);
+            return analiseVazia();
         }
     }
 
@@ -114,6 +130,41 @@ public class OllamaAssistenteAdapter implements AssistenteTriagemPort {
             log.warn("Falha ao gerar orientação via Ollama (degradando para null): {}", ex.getMessage());
             return null;
         }
+    }
+
+    private static String contextoParaPrompt(ContextoTriagem contexto) {
+        String sintomas = contexto.sintomasSelecionados() == null || contexto.sintomasSelecionados().isEmpty()
+                ? "não informados" : contexto.sintomasSelecionados().stream().map(Enum::name).collect(Collectors.joining(", "));
+        String sinais = contexto.sinaisVitais() == null ? "não informados" : "FC=%d bpm, FR=%d irpm, PA=%d/%d mmHg, temperatura=%.1f °C, saturação=%d%%, dor=%d/10"
+                .formatted(contexto.sinaisVitais().frequenciaCardiaca(), contexto.sinaisVitais().frequenciaRespiratoria(),
+                        contexto.sinaisVitais().pressaoSistolica(), contexto.sinaisVitais().pressaoDiastolica(), contexto.sinaisVitais().temperatura(),
+                        contexto.sinaisVitais().saturacaoOxigenio(), contexto.sinaisVitais().escalaDor());
+        return "Queixa: %s\nSintomas selecionados: %s\nSinais vitais: %s".formatted(contexto.queixaLivre(), sintomas, sinais);
+    }
+
+    private static Map<String, Object> arraySchema() {
+        return Map.of("type", "array", "items", Map.of("type", "string"));
+    }
+
+    private static AnaliseClinica analiseVazia() {
+        return new AnaliseClinica(EnumSet.noneOf(Sintoma.class), null, Set.of(), Set.of(), Set.of());
+    }
+
+    private static Set<String> textosLimitados(JsonNode valores) {
+        Set<String> resultado = new LinkedHashSet<>();
+        if (!valores.isArray()) return resultado;
+        for (JsonNode valor : valores) {
+            String texto = textoLimitado(valor.asText(null));
+            if (texto != null) resultado.add(texto);
+            if (resultado.size() == 5) break;
+        }
+        return resultado;
+    }
+
+    private static String textoLimitado(String texto) {
+        if (texto == null || texto.isBlank()) return null;
+        String normalizado = texto.trim();
+        return normalizado.length() <= 300 ? normalizado : normalizado.substring(0, 300);
     }
 
     /** Chama /api/chat (stream=false) e retorna o texto de message.content. */

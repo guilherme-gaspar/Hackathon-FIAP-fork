@@ -1,6 +1,7 @@
 package com.fiap.hackaton.atendimento_sus.triagem.adapter.out.ai;
 
 import com.fiap.hackaton.atendimento_sus.triagem.application.port.out.AssistenteTriagemPort;
+import com.fiap.hackaton.atendimento_sus.triagem.application.port.out.AssistenteTriagemPort.ContextoTriagem;
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.NivelRisco;
 import com.fiap.hackaton.atendimento_sus.triagem.domain.model.Sintoma;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,12 +19,13 @@ import java.util.Set;
 public class AssistenteTriagemNoOpAdapter implements AssistenteTriagemPort {
 
     @Override
-    public AnaliseClinica analisar(String queixaLivre) {
-        return new AnaliseClinica(EnumSet.noneOf(Sintoma.class), null);
+    public AnaliseClinica analisar(ContextoTriagem contexto) {
+        return new AnaliseClinica(EnumSet.noneOf(Sintoma.class), null, Set.of(), Set.of(), Set.of());
     }
 
     @Override
     public String gerarOrientacao(NivelRisco nivel, Set<Sintoma> sintomas) {
         return null;
     }
+
 }

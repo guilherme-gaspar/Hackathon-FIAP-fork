@@ -1,0 +1,12 @@
+<svg width="1200" height="650" viewBox="0 0 1200 650" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1200" height="650" rx="36" fill="#F8FCFC"/>
+<text x="65" y="75" fill="#123F52" font-family="Arial" font-size="34" font-weight="700">Fluxo de acolhimento, triagem e agendamento</text>
+<g font-family="Arial" text-anchor="middle"><rect x="55" y="190" width="180" height="140" rx="24" fill="#D5EEF2"/><text x="145" y="250" fill="#123F52" font-size="22" font-weight="700">1. Queixa</text><text x="145" y="280" fill="#365C6E" font-size="17">Paciente e contexto</text>
+<rect x="285" y="190" width="180" height="140" rx="24" fill="#DDF3EF"/><text x="375" y="250" fill="#123F52" font-size="22" font-weight="700">2. IA local</text><text x="375" y="280" fill="#365C6E" font-size="17">Sugestões e alertas</text>
+<rect x="515" y="190" width="180" height="140" rx="24" fill="#FFF0E7"/><text x="605" y="250" fill="#123F52" font-size="22" font-weight="700">3. Revisão</text><text x="605" y="280" fill="#365C6E" font-size="17">Profissional valida</text>
+<rect x="745" y="190" width="180" height="140" rx="24" fill="#FCE5E1"/><text x="835" y="250" fill="#123F52" font-size="22" font-weight="700">4. Triagem</text><text x="835" y="280" fill="#365C6E" font-size="17">Risco determinístico</text>
+<rect x="975" y="190" width="170" height="140" rx="24" fill="#BDE7DE"/><text x="1060" y="250" fill="#123F52" font-size="22" font-weight="700">5. Agenda</text><text x="1060" y="280" fill="#365C6E" font-size="17">Prioridade derivada</text></g>
+<g stroke="#64B6AC" stroke-width="7" stroke-linecap="round"><path d="M245 260h28"/><path d="M475 260h28"/><path d="M705 260h28"/><path d="M935 260h28"/></g>
+<g fill="#64B6AC"><path d="M263 248l17 12-17 12Z"/><path d="M493 248l17 12-17 12Z"/><path d="M723 248l17 12-17 12Z"/><path d="M953 248l17 12-17 12Z"/></g>
+<rect x="210" y="445" width="780" height="90" rx="22" fill="#123F52"/><text x="600" y="485" fill="#FFF" text-anchor="middle" font-family="Arial" font-size="23" font-weight="700">A IA nunca atribui o nível de risco</text><text x="600" y="515" fill="#CFE6E4" text-anchor="middle" font-family="Arial" font-size="18">Falhas do Ollama degradam a análise, sem interromper a triagem.</text>
+</svg>
